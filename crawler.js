@@ -3,9 +3,6 @@ const cheerio = require('cheerio');
 //const url = require('url-parse');
 const xlsx = require('xlsx')
 
-const url = 'https://www.voltarengel.com/'
-const sitename = 'VoltarenGel'
-
 //read sitename and URL's
 const WB = xlsx.readFile('listofsites.xlsx')
 const WS = WB.Sheets['META']
@@ -15,6 +12,7 @@ siteList.forEach((site)=>{
     console.log(site.sitename)
     const url = site.url
     const sitename = site.sitename
+    const tagsNeeded = ['description','keywords','og:title','og:description','twitter:title','twitter:description']
 
     ////
     fetchData(url).then((res) => {
@@ -45,10 +43,18 @@ siteList.forEach((site)=>{
         });
         //console.log(obj)
         //data.push({'Key':obj[tagType], 'Value':obj[metaContent]})
-        console.log(data)
+        //console.log(data)
+
+        //to filter out unnecessary data
+        const filteredData = data.filter((tag)=>{
+            return tagsNeeded.includes(tag['Tag Name'])
+            //return tagsNeeded.indexOf(tag['Tag Name']) > -1; // also correct
+        })
+        console.log(filteredData)
     
+        //write on excel sheet
         const newWB = xlsx.utils.book_new()
-        const newWS = xlsx.utils.json_to_sheet(data)
+        const newWS = xlsx.utils.json_to_sheet(filteredData)
         xlsx.utils.book_append_sheet(newWB, newWS, "Meta Tags")
     
         xlsx.writeFile(newWB, `${sitename}.xlsx`)
